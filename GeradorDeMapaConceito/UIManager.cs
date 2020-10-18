@@ -57,7 +57,7 @@ namespace GeradorDeMapaConceito
             {
                 int mouseLocation = Helpers.GetIndexFromPoint(e.MouseState.CellPosition.X,
                     e.MouseState.CellPosition.Y, MapConsole.Width);
-                if (!tiles[mouseLocation].isTileWalkable)
+                if (!tiles[mouseLocation].IsTileWalkable)
                     AddBasicMob(mouseLocation);
             }
             if (Global.KeyboardState.IsKeyDown(Keys.LeftShift) && e.MouseState.Mouse.RightButtonDown)
@@ -65,7 +65,7 @@ namespace GeradorDeMapaConceito
                 // Made to stress test how many entities it holds
                 int mouseLocation = Helpers.GetIndexFromPoint(e.MouseState.CellPosition.X,
                    e.MouseState.CellPosition.Y, MapConsole.Width);
-                if (!tiles[mouseLocation].isTileWalkable)
+                if (!tiles[mouseLocation].IsTileWalkable)
                 {
                     for (int i = 0; i < 100; i++)
                     {
@@ -80,7 +80,7 @@ namespace GeradorDeMapaConceito
             player = new Player();
             for (int i = 0; i < tiles.Length; i++)
             {
-                if (!tiles[i].isTileWalkable)
+                if (!tiles[i].IsTileWalkable)
                 {
                     player.Position = Helpers.GetPointFromIndex(i, MapConsole.Width);
                 }
@@ -121,7 +121,7 @@ namespace GeradorDeMapaConceito
             // off the limits of the map
             if (location.X < 0 || location.Y < 0 || location.X >= MapConsole.Width || location.Y >= MapConsole.Height)
                 return false;
-            return !tiles[location.Y * MapConsole.Width + location.X].isTileWalkable;
+            return !tiles[location.Y * MapConsole.Width + location.X].IsTileWalkable;
         }
 
         public void CreateMap(int width, int height)
@@ -152,38 +152,25 @@ namespace GeradorDeMapaConceito
 
         private void MakeWalls()
         {
-            /*int firstPointOfPerimeter = 0;
-            int secondPointOfPerimeter = 119;
-            int thirdPointOfPerimeter = 3599 - 119;
-            int fourthPointOfPerimeter = 3599;*/
-
             // formula x*m + y, calculo de row major
-            for (int leftY = 0; leftY < MapConsole.Height; leftY++)
+            for (int y = 0; y < MapConsole.Height; y++)
             {
-                tiles[leftY * MapConsole.Width + 0] = new TileWall();
-                for (int rightY = 0; rightY < MapConsole.Height; rightY++)
+                for (int x = 0; x < MapConsole.Width; x++)
                 {
-                    tiles[rightY * MapConsole.Width + 119] = new TileWall();
-                    for (int topX = 0; topX < MapConsole.Width; topX++)
+                    if (x == 0 || y == 0 || x == MapConsole.Width - 1 || y == MapConsole.Height - 1)
                     {
-                        tiles[0 * MapConsole.Width + topX] = new TileWall();
-                        for (int bottomX = 0; bottomX < MapConsole.Width; bottomX++)
-                        {
-                            tiles[0 * MapConsole.Width + bottomX + 3480] = new TileWall();
-                        }
+                        tiles[y * MapConsole.Width + x] = new TileWall();
                     }
                 }
             }
         }
 
-        public override void Update(TimeSpan timeElapsed)
+        public override bool ProcessMouse(MouseConsoleState state)
         {
-            ProcessKeyboard();
-
-            base.Update(timeElapsed);
+            return base.ProcessMouse(state);
         }
 
-        private void ProcessKeyboard()
+        public override bool ProcessKeyboard(SadConsole.Input.Keyboard info)
         {
             if (Global.KeyboardState.IsKeyPressed(Keys.Escape))
                 SadConsole.Game.Instance.Exit();
@@ -205,32 +192,42 @@ namespace GeradorDeMapaConceito
                 MoveBy(new Point(1, 1), player);
             if (Global.KeyboardState.IsKeyDown(Keys.LeftShift) && Global.KeyboardState.IsKeyPressed(Keys.P))
                 AddPlayer();
+
+            return base.ProcessKeyboard(info);
         }
+    }
+
+    internal enum MapLayer
+    {
+        TERRAIN,
+        ENTITY
     }
 
     public abstract class TileBase : Cell
     {
-        public bool isTileWalkable;
-        public bool isBlockingVision;
+        public bool IsTileWalkable;
+        public bool IsBlockingVision;
+        public int Layer;
 
-        public TileBase(Color foreground, Color background, int glyph, bool blocksMove = false, bool blocksVision = false)
+        public TileBase(Color foreground, Color background, int glyph, int layer, bool blocksMove = false, bool blocksVision = false)
         : base(foreground, background, glyph)
         {
-            isTileWalkable = blocksMove;
-            isBlockingVision = blocksVision;
+            IsTileWalkable = blocksMove;
+            IsBlockingVision = blocksVision;
+            Layer = layer;
         }
     }
 
     public class TileFloor : TileBase
     {
-        public TileFloor(bool blocksMove = false, bool blocksVision = false) : base(Color.DarkGray, Color.Transparent, '.', blocksMove, blocksVision)
+        public TileFloor(bool blocksMove = false, bool blocksVision = false) : base(Color.DarkGray, Color.Transparent, '.', (int)MapLayer.TERRAIN, blocksMove, blocksVision)
         {
         }
     }
 
     public class TileWall : TileBase
     {
-        public TileWall(bool blocksMove = true, bool blocksVision = true) : base(Color.LightGray, Color.Transparent, '#', blocksMove, blocksVision)
+        public TileWall(bool blocksMove = true, bool blocksVision = true) : base(Color.LightGray, Color.Transparent, '#', (int)MapLayer.TERRAIN, blocksMove, blocksVision)
         {
         }
     }
@@ -249,23 +246,22 @@ namespace GeradorDeMapaConceito
         }
     }
 
-    public abstract class Actor : Entity
+    public abstract class Actor : SadConsole.Entities.Entity
     {
-        public Actor(Color foreground, Color background, int glyph, int height = 1, int width = 1) :
-            base(foreground, background, glyph, height, width)
-        {
-        }
-    }
-
-    public abstract class Entity : SadConsole.Entities.Entity
-    {
-        public Entity(Color foreground, Color background, int glyph, int height, int width) : base(height, width)
+        public Actor(Color foreground, Color background, int glyph, int layer = (int)MapLayer.ENTITY, int height = 1, int width = 1) :
+            base(height, width)
         {
             Animation.CurrentFrame[0].Foreground = foreground;
             Animation.CurrentFrame[0].Background = background;
             Animation.CurrentFrame[0].Glyph = glyph;
-
-            //Components.Add(new EntityViewSyncComponent());
         }
     }
+
+    /*public abstract class Entity : SadConsole.Entities.Entity
+    {
+        public Entity(Color foreground, Color background, int glyph, int height, int width, int layer) : base(height, width)
+        {
+            //Components.Add(new EntityViewSyncComponent());
+        }
+    }*/
 }
