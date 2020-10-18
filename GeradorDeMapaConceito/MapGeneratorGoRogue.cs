@@ -7,6 +7,7 @@ using SadConsole;
 
 namespace GeradorDeMapaConceito
 {
+    // For now its not used.
     public class MapGeneratorGoRogue : Map
     {
         public enum MapLayer

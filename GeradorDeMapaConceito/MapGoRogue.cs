@@ -10,6 +10,7 @@ using SadConsole;
 
 namespace GeradorDeMapaConceito
 {
+    // For now its not used.
     public class MapGoRogue : UIManager
     {
         public ScrollingConsole MapRender;
