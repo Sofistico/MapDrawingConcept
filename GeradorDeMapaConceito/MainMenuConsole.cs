@@ -1,8 +1,5 @@
 ﻿using SadConsole;
-using Console = SadConsole.Console;
 using System;
-using System.Collections.Generic;
-using System.Text;
 using Microsoft.Xna.Framework;
 using SadConsole.Controls;
 using SadConsole.Themes;

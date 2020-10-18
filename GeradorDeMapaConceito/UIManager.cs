@@ -1,14 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using Microsoft.Xna.Framework;
 using SadConsole;
 using Microsoft.Xna.Framework.Input;
-using SadConsole.Entities;
 using SadConsole.Input;
-using SadConsole.Components;
-using GoRogue;
 using Rectangle = Microsoft.Xna.Framework.Rectangle;
 
 namespace GeradorDeMapaConceito
@@ -68,6 +62,7 @@ namespace GeradorDeMapaConceito
             }
             if (Global.KeyboardState.IsKeyDown(Keys.LeftShift) && e.MouseState.Mouse.RightButtonDown)
             {
+                // Made to stress test how many entities it holds
                 int mouseLocation = Helpers.GetIndexFromPoint(e.MouseState.CellPosition.X,
                    e.MouseState.CellPosition.Y, MapConsole.Width);
                 if (!tiles[mouseLocation].isTileWalkable)
@@ -96,11 +91,13 @@ namespace GeradorDeMapaConceito
 
         private void AddBasicMob(int indexOfTile)
         {
-            BasicMob mob = new BasicMob();
-            mob.Position = Helpers.GetPointFromIndex(indexOfTile, MapConsole.Width);
+            BasicMob mob = new BasicMob
+            {
+                Position = Helpers.GetPointFromIndex(indexOfTile, MapConsole.Width)
+            };
             //MapConsole.Children.Add(mob);
             MapConsole.Children.Insert(MapConsole.Children.Count, mob);
-            mob.IsVisible = true;
+            //mob.IsVisible = true;
         }
 
         private bool MoveBy(Point positionChange, Player player)
