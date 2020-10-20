@@ -4,6 +4,7 @@ using SadConsole;
 using Microsoft.Xna.Framework.Input;
 using SadConsole.Input;
 using Rectangle = Microsoft.Xna.Framework.Rectangle;
+using GoRogue.MapViews;
 
 namespace GeradorDeMapaConceito
 {
@@ -15,6 +16,7 @@ namespace GeradorDeMapaConceito
         private Player player;
         private const int maxRooms = 6;
         private const int maxSize = 10;
+        private ArrayMap<bool> tileArray;
 
         public UIManager()
         {
@@ -130,8 +132,14 @@ namespace GeradorDeMapaConceito
             // Creates a empty map console to not get any errors, to them populate
             MapConsole = new ScrollingConsole(width, height);
 
-            FloodFloors();
-            MakeWalls();
+            /* FloodFloors();
+             MakeWalls();*/
+
+            FloodFloors(tileArray);
+            MakeWalls(tileArray);
+            PopulateTiles(tileArray, tiles);
+
+            //tiles = tileArray;
 
             MapConsole = new ScrollingConsole(width, height, Global.FontDefault
                 , new Rectangle(0, 0, width, height), tiles);
@@ -140,13 +148,45 @@ namespace GeradorDeMapaConceito
             MapConsole.MouseMove += MapConsole_MouseMove;
         }
 
-        private void FloodFloors()
+        private void FloodFloors(ArrayMap<bool> map)
+        {
+            foreach (var pos in map.Positions())
+            {
+                map[pos] = true;
+            }
+        }
+
+        private void MakeWalls(ArrayMap<bool> map)
+        {
+            foreach (var pos in map.Positions())
+            {
+                if (pos.X == 0 || pos.Y == 0 || pos.X == MapConsole.Width - 1 || pos.Y == MapConsole.Height - 1)
+                {
+                    map[pos] = false;
+                }
+            }
+        }
+
+        private void PopulateTiles(ArrayMap<bool> map, TileBase[] tiles)
+        {
+            foreach (var pos in map.Positions())
+            {
+                if (map[pos])
+                    tiles[pos.ToIndex(map.Width)] = new TileFloor();
+                else
+                    tiles[pos.ToIndex(map.Width)] = new TileWall();
+            }
+        }
+
+        /*private void FloodFloors()
         {
             tiles = new TileBase[GameLoop.GameWidth * GameLoop.GameHeight];
+            tileArray = new ArrayMap<TileBase>(GameLoop.GameWidth, GameLoop.GameHeight);
 
             for (int i = 0; i < tiles.Length; i++)
             {
-                tiles[i] = new TileFloor();
+                //tiles[i] = new TileFloor();
+                tileArray[i] = new TileFloor();
             }
         }
 
@@ -159,11 +199,13 @@ namespace GeradorDeMapaConceito
                 {
                     if (x == 0 || y == 0 || x == MapConsole.Width - 1 || y == MapConsole.Height - 1)
                     {
-                        tiles[y * MapConsole.Width + x] = new TileWall();
+                        tileArray[y * MapConsole.Width + x] = new TileWall();
+
+                        //tiles[y * MapConsole.Width + x] = new TileWall();
                     }
                 }
             }
-        }
+        }*/
 
         public override bool ProcessMouse(MouseConsoleState state)
         {
@@ -222,6 +264,12 @@ namespace GeradorDeMapaConceito
     {
         public TileFloor(bool blocksMove = false, bool blocksVision = false) : base(Color.DarkGray, Color.Transparent, '.', (int)MapLayer.TERRAIN, blocksMove, blocksVision)
         {
+        }
+
+        static public implicit operator TileWall(TileFloor floor)
+        {
+            TileBase fl = floor;
+            return fl as TileWall;
         }
     }
 
