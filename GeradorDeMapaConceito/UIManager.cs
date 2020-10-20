@@ -13,7 +13,7 @@ namespace GeradorDeMapaConceito
     {
         public ScrollingConsole MapConsole;
         public MainMenuConsole MainMenu;
-        public static MapGoRogue map;
+        public MapGoRogue map;
         public TileBase[] tiles;
         private Player player;
         private const int maxRooms = 6;
@@ -174,7 +174,7 @@ namespace GeradorDeMapaConceito
             // Creates a empty map console to not get any errors, to them populate
             MapConsole = new ScrollingConsole(width, height);
 
-            tileBase = new ArrayMap<TileBase>(width, height);
+            //tileBase = new ArrayMap<TileBase>(width, height);
 
             map = new MapGoRogue(width, height);
 
@@ -314,11 +314,11 @@ namespace GeradorDeMapaConceito
         {
         }
 
-        static public implicit operator TileFloor(TileWall wall)
+        /*static public implicit operator TileFloor(TileWall wall)
         {
             TileBase wa = wall;
             return wa as TileFloor;
-        }
+        }*/
     }
 
     public class Player : Actor
