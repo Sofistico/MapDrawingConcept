@@ -13,7 +13,7 @@ namespace GeradorDeMapaConceito
     {
         public ScrollingConsole MapConsole;
         public MainMenuConsole MainMenu;
-        public MapGoRogue map;
+        public static MapGoRogue map;
         public TileBase[] tiles;
         private Player player;
         private const int maxRooms = 6;
@@ -50,13 +50,20 @@ namespace GeradorDeMapaConceito
         private void MapConsole_MouseMove(object sender, MouseEventArgs e)
         {
             var console = (ScrollingConsole)sender;
-            if (e.MouseState.Mouse.LeftButtonDown)
+            if (e.MouseState.Mouse.LeftButtonDown && !Global.KeyboardState.IsKeyDown(Keys.LeftShift))
             {
                 // The proper way of doing it is by clearing the cell that the mouse is over.
                 console.Clear(e.MouseState.CellPosition.X, e.MouseState.CellPosition.Y);
                 int mouseLocation = Helpers.GetIndexFromPoint(e.MouseState.CellPosition.X,
                     e.MouseState.CellPosition.Y, MapConsole.Width);
                 e.MouseState.Cell.CopyAppearanceFrom(tiles[mouseLocation] = new TileWall());
+            }
+            if (e.MouseState.Mouse.LeftButtonDown && Global.KeyboardState.IsKeyDown(Keys.LeftShift))
+            {
+                int mouseLocation = Helpers.GetIndexFromPoint(e.MouseState.CellPosition.X,
+                   e.MouseState.CellPosition.Y, MapConsole.Width);
+                if (!tiles[mouseLocation].IsTileWalkable)
+                    AddItem(mouseLocation);
             }
             if (e.MouseState.Mouse.RightButtonDown && !Global.KeyboardState.IsKeyDown(Keys.LeftShift))
             {
@@ -78,6 +85,14 @@ namespace GeradorDeMapaConceito
                     }
                 }
             }
+        }
+
+        private void AddItem(int indexOfTile)
+        {
+            Item item = new Item(Color.White, Color.Black, '*', 20, "Star");
+            item.Position = Helpers.GetPointFromIndex(indexOfTile, MapConsole.Width);
+
+            MapConsole.Children.Add(item);
         }
 
         private void AddPlayer()
@@ -261,6 +276,7 @@ namespace GeradorDeMapaConceito
     internal enum MapLayer
     {
         TERRAIN,
+        ITEM,
         ENTITY
     }
 
@@ -330,6 +346,21 @@ namespace GeradorDeMapaConceito
             Animation.CurrentFrame[0].Background = background;
             Animation.CurrentFrame[0].Glyph = glyph;
             Layer = layer;
+        }
+    }
+
+    public class Item : SadConsole.Entities.Entity
+    {
+        public int Value;
+        public int Layer;
+        public new string Name;
+
+        public Item(Color foreground, Color background, int glyph, int value, string name, int layer = (int)MapLayer.ITEM)
+            : base(foreground, background, glyph)
+        {
+            Value = value;
+            Layer = layer;
+            Name = name;
         }
     }
 
