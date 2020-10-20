@@ -13,7 +13,7 @@ namespace GeradorDeMapaConceito
 
         public static UIManager UIManager;
 
-        static void Main()
+        public static void Main()
         {
             // Setup the engine and creat the main window.
             SadConsole.Game.Create(GameWidth, GameHeight);

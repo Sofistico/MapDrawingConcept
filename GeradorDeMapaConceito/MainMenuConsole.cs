@@ -18,6 +18,7 @@ namespace GeradorDeMapaConceito
             {
                 Position = new Point(width / 2, height / 2),
                 Text = "Create SadConsole Map",
+                Name = "Sad Map",
                 ThemeColors = Colors.CreateAnsi()
             };
             startGameSadConsole.Click += StartGameSadConsole_Click;
@@ -27,9 +28,12 @@ namespace GeradorDeMapaConceito
             {
                 Position = new Point(width / 3, height / 3),
                 Text = "Create GoRogue Map",
+                Name = "GoRogue Map",
                 ThemeColors = Colors.CreateAnsi()
             };
+
             startGameGoRogue.Click += StartGameGoRogue_Click;
+
             Add(startGameGoRogue);
         }
 
