@@ -10,33 +10,29 @@ using SadConsole;
 
 namespace GeradorDeMapaConceito
 {
-    // For now its not used.
+    // This uses the core feature of GoRogue
     public class MapGoRogue : UIManager
     {
-        public MapGeneratorGoRogue MapGen;
         private ArrayMap<bool> tempMap;
 
         public MapGoRogue(int width, int height)
         {
-            MapGen = GenerateMap(width, height);
-
-            Children.Add(GameLoop.UIManager.MapConsole);
+            GenerateMap(width, height);
         }
 
-        private IGameObject TempMapValueToTile(Coord pos, bool val) => val ? new TileFloor() : new TileWall();
+        private TileBase TempMapValueToTile(Coord pos, bool val) => val ? new TileFloor() : new TileWall();
 
-        private MapGeneratorGoRogue GenerateMap(int mapWidth, int mapHeight)
+        private void GenerateMap(int mapWidth, int mapHeight)
         {
-            // Generate map via GoRogue, and update the real map with appropriate terrain.
-            MapGeneratorGoRogue map = new MapGeneratorGoRogue(mapWidth, mapHeight);
+            // Create "real" map, or if this has already been created by this point there's nothing to do here
+            //GameLoop.UIManager.tileBase = new ArrayMap<TileBase>(mapWidth, mapHeight);
 
-            tempMap = new ArrayMap<bool>(map.Width, map.Height);
+            // Generate temp map via GoRogue
+            tempMap = new ArrayMap<bool>(mapWidth, mapHeight);
             QuickGenerators.GenerateRectangleMap(tempMap);
 
             // Update real map with tiles (using a GoRogue helper method)
-            map.ApplyTerrainOverlay(tempMap, TempMapValueToTile);
-
-            return map;
+            GameLoop.UIManager.tileBase.ApplyOverlay(new LambdaTranslationMap<bool, TileBase>(tempMap, TempMapValueToTile));
         }
 
         public void GenerateFloor()

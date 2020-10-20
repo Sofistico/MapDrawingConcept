@@ -5,6 +5,7 @@ using Microsoft.Xna.Framework.Input;
 using SadConsole.Input;
 using Rectangle = Microsoft.Xna.Framework.Rectangle;
 using GoRogue.MapViews;
+using GoRogue.GameFramework;
 
 namespace GeradorDeMapaConceito
 {
@@ -12,11 +13,13 @@ namespace GeradorDeMapaConceito
     {
         public ScrollingConsole MapConsole;
         public MainMenuConsole MainMenu;
-        private TileBase[] tiles;
+        public MapGoRogue map;
+        public TileBase[] tiles;
         private Player player;
         private const int maxRooms = 6;
         private const int maxSize = 10;
         private ArrayMap<bool> tileArray;
+        public ArrayMap<TileBase> tileBase;
 
         public UIManager()
         {
@@ -88,7 +91,7 @@ namespace GeradorDeMapaConceito
                 }
             }
             MapConsole.Children.Add(player);
-            player.IsVisible = true;
+            //player.IsVisible = true;
         }
 
         private void AddBasicMob(int indexOfTile)
@@ -126,12 +129,14 @@ namespace GeradorDeMapaConceito
             return !tiles[location.Y * MapConsole.Width + location.X].IsTileWalkable;
         }
 
-        public void CreateMap(int width, int height)
+        public void CreateMapSadConsole(int width, int height)
         {
             MainMenu.Hide();
             // Creates a empty map console to not get any errors, to them populate
             MapConsole = new ScrollingConsole(width, height);
 
+            tiles = new TileBase[width * height];
+            tileArray = new ArrayMap<bool>(width, height);
             /* FloodFloors();
              MakeWalls();*/
 
@@ -146,6 +151,20 @@ namespace GeradorDeMapaConceito
             UseMouse = true;
             Children.Add(MapConsole);
             MapConsole.MouseMove += MapConsole_MouseMove;
+        }
+
+        public void CreateMapGoRogue(int width, int height)
+        {
+            MainMenu.Hide();
+            // Creates a empty map console to not get any errors, to them populate
+            MapConsole = new ScrollingConsole(width, height);
+
+            tileBase = new ArrayMap<TileBase>(width, height);
+
+            map = new MapGoRogue(width, height);
+
+            MapConsole = new ScrollingConsole(width, height, Global.FontDefault, new Rectangle(0, 0, width, height), tileBase);
+            Children.Add(MapConsole);
         }
 
         private void FloodFloors(ArrayMap<bool> map)
@@ -266,17 +285,23 @@ namespace GeradorDeMapaConceito
         {
         }
 
-        static public implicit operator TileWall(TileFloor floor)
+        /*static public implicit operator TileWall(TileFloor floor)
         {
             TileBase fl = floor;
             return fl as TileWall;
-        }
+        }*/
     }
 
     public class TileWall : TileBase
     {
         public TileWall(bool blocksMove = true, bool blocksVision = true) : base(Color.LightGray, Color.Transparent, '#', (int)MapLayer.TERRAIN, blocksMove, blocksVision)
         {
+        }
+
+        static public implicit operator TileFloor(TileWall wall)
+        {
+            TileBase wa = wall;
+            return wa as TileFloor;
         }
     }
 
@@ -296,12 +321,15 @@ namespace GeradorDeMapaConceito
 
     public abstract class Actor : SadConsole.Entities.Entity
     {
+        public int Layer;
+
         public Actor(Color foreground, Color background, int glyph, int layer = (int)MapLayer.ENTITY, int height = 1, int width = 1) :
             base(height, width)
         {
             Animation.CurrentFrame[0].Foreground = foreground;
             Animation.CurrentFrame[0].Background = background;
             Animation.CurrentFrame[0].Glyph = glyph;
+            Layer = layer;
         }
     }
 

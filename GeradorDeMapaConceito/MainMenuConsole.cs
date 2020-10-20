@@ -14,17 +14,33 @@ namespace GeradorDeMapaConceito
         {
             Title = title.Align(HorizontalAlignment.Center, Width);
 
-            Button startGame = new Button(12, 1);
-            startGame.Position = new Point(width / 2, height / 2);
-            startGame.Text = "Start Game";
-            startGame.ThemeColors = Colors.CreateAnsi();
-            startGame.Click += StartGame_Click;
-            Add(startGame);
+            Button startGameSadConsole = new Button(23, 1)
+            {
+                Position = new Point(width / 2, height / 2),
+                Text = "Create SadConsole Map",
+                ThemeColors = Colors.CreateAnsi()
+            };
+            startGameSadConsole.Click += StartGameSadConsole_Click;
+            Add(startGameSadConsole);
+
+            Button startGameGoRogue = new Button(20, 1)
+            {
+                Position = new Point(width / 3, height / 3),
+                Text = "Create GoRogue Map",
+                ThemeColors = Colors.CreateAnsi()
+            };
+            startGameGoRogue.Click += StartGameGoRogue_Click;
+            Add(startGameGoRogue);
         }
 
-        private void StartGame_Click(object sender, EventArgs e)
+        private void StartGameGoRogue_Click(object sender, EventArgs e)
         {
-            GameLoop.UIManager.CreateMap(GameLoop.GameWidth, GameLoop.GameHeight);
+            GameLoop.UIManager.CreateMapGoRogue(GameLoop.GameWidth, GameLoop.GameHeight);
+        }
+
+        private void StartGameSadConsole_Click(object sender, EventArgs e)
+        {
+            GameLoop.UIManager.CreateMapSadConsole(GameLoop.GameWidth, GameLoop.GameHeight);
         }
     }
 }

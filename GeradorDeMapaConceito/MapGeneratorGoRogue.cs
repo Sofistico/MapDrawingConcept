@@ -7,7 +7,7 @@ using SadConsole;
 
 namespace GeradorDeMapaConceito
 {
-    // For now its not used.
+    // When it's done, it will use the GoRogue.GameFramework
     public class MapGeneratorGoRogue : Map
     {
         public enum MapLayer
@@ -18,8 +18,6 @@ namespace GeradorDeMapaConceito
             ACTORS,
             PLAYER
         }
-
-        private readonly Random rnd = new Random();
 
         public MapGeneratorGoRogue(int widht, int height)
             : base(widht, height, Enum.GetNames(typeof(MapLayer)).Length - 1,
