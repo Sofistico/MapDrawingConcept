@@ -1,35 +1,25 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using GoRogue;
-using GoRogue.GameFramework;
+﻿using GoRogue;
 using GoRogue.MapGeneration;
 using GoRogue.MapViews;
-using Microsoft.Xna.Framework;
 using SadConsole;
+using SadConsole.Input;
 
 namespace GeradorDeMapaConceito
 {
     // This uses the core feature of GoRogue
     public class MapGoRogue
     {
-        public ArrayMap<bool> tempMap;
+        private ArrayMap<bool> tempMap;
+
+        //private ArrayMap<TileBase> tiles = GameLoop.UIManager.tileBase;
+        private Player player;
 
         public MapGoRogue(int width, int height)
         {
             GenerateMap(width, height);
         }
 
-        // Dont use, it's bugged as hell, i am keeping it to later learn why it doenst work
-        //private TileBase TempMapValueToTile(Coord pos, bool val) => val ? new TileFloor() : new TileWall();
-
-        private TileBase TempMapValueToTile(Coord pos, bool val)
-        {
-            if (val)
-                return new TileFloor();
-            else
-                return new TileWall();
-        }
+        private TileBase TempMapValueToTile(Coord pos, bool val) => val ? (TileBase)new TileFloor() : new TileWall();
 
         private void GenerateMap(int mapWidth, int mapHeight)
         {
@@ -43,10 +33,6 @@ namespace GeradorDeMapaConceito
             // Update real map with tiles (using a GoRogue helper method)
             //GameLoop.UIManager.tileBase.ApplyOverlay(new LambdaTranslationMap<bool, TileBase>(tempMap, TempMapValueToTile));
             GameLoop.UIManager.tileBase.ApplyOverlay(new LambdaTranslationMap<bool, TileBase>(tempMap, TempMapValueToTile));
-        }
-
-        public void GenerateFloor()
-        {
         }
     }
 }

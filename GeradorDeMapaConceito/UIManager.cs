@@ -6,6 +6,7 @@ using SadConsole.Input;
 using Rectangle = Microsoft.Xna.Framework.Rectangle;
 using GoRogue.MapViews;
 using GoRogue.GameFramework;
+using System.Linq;
 
 namespace GeradorDeMapaConceito
 {
@@ -14,12 +15,16 @@ namespace GeradorDeMapaConceito
         public ScrollingConsole MapConsole;
         public MainMenuConsole MainMenu;
         public MapGoRogue map;
-        public TileBase[] tiles;
+
+        //public TileBase[] tiles;
         private Player player;
+
         private const int maxRooms = 6;
         private const int maxSize = 10;
         private ArrayMap<bool> tileArray;
         public ArrayMap<TileBase> tileBase;
+
+        #region Uimanager
 
         public UIManager()
         {
@@ -47,6 +52,10 @@ namespace GeradorDeMapaConceito
             //CreateMap(GameLoop.GameWidth, GameLoop.GameHeight);
         }
 
+        #endregion Uimanager
+
+        #region World Gen and controls
+
         private void MapConsole_MouseMove(object sender, MouseEventArgs e)
         {
             var console = (ScrollingConsole)sender;
@@ -56,20 +65,20 @@ namespace GeradorDeMapaConceito
                 console.Clear(e.MouseState.CellPosition.X, e.MouseState.CellPosition.Y);
                 int mouseLocation = Helpers.GetIndexFromPoint(e.MouseState.CellPosition.X,
                     e.MouseState.CellPosition.Y, MapConsole.Width);
-                e.MouseState.Cell.CopyAppearanceFrom(tiles[mouseLocation] = new TileWall());
+                e.MouseState.Cell.CopyAppearanceFrom(tileBase[mouseLocation] = new TileWall());
             }
             if (e.MouseState.Mouse.LeftButtonDown && Global.KeyboardState.IsKeyDown(Keys.LeftShift))
             {
                 int mouseLocation = Helpers.GetIndexFromPoint(e.MouseState.CellPosition.X,
                    e.MouseState.CellPosition.Y, MapConsole.Width);
-                if (!tiles[mouseLocation].IsTileWalkable)
+                if (!tileBase[mouseLocation].IsTileWalkable)
                     AddItem(mouseLocation);
             }
             if (e.MouseState.Mouse.RightButtonDown && !Global.KeyboardState.IsKeyDown(Keys.LeftShift))
             {
                 int mouseLocation = Helpers.GetIndexFromPoint(e.MouseState.CellPosition.X,
                     e.MouseState.CellPosition.Y, MapConsole.Width);
-                if (!tiles[mouseLocation].IsTileWalkable)
+                if (!tileBase[mouseLocation].IsTileWalkable)
                     AddBasicMob(mouseLocation);
             }
             if (Global.KeyboardState.IsKeyDown(Keys.LeftShift) && e.MouseState.Mouse.RightButtonDown)
@@ -77,7 +86,7 @@ namespace GeradorDeMapaConceito
                 // Made to stress test how many entities it holds
                 int mouseLocation = Helpers.GetIndexFromPoint(e.MouseState.CellPosition.X,
                    e.MouseState.CellPosition.Y, MapConsole.Width);
-                if (!tiles[mouseLocation].IsTileWalkable)
+                if (!tileBase[mouseLocation].IsTileWalkable)
                 {
                     for (int i = 0; i < 100; i++)
                     {
@@ -89,8 +98,10 @@ namespace GeradorDeMapaConceito
 
         private void AddItem(int indexOfTile)
         {
-            Item item = new Item(Color.White, Color.Black, '*', 20, "Star");
-            item.Position = Helpers.GetPointFromIndex(indexOfTile, MapConsole.Width);
+            Item item = new Item(Color.White, Color.Black, '*', 20, "Star")
+            {
+                Position = Helpers.GetPointFromIndex(indexOfTile, MapConsole.Width)
+            };
 
             MapConsole.Children.Add(item);
         }
@@ -98,9 +109,9 @@ namespace GeradorDeMapaConceito
         private void AddPlayer()
         {
             player = new Player();
-            for (int i = 0; i < tiles.Length; i++)
+            for (int i = 0; i < tileBase.Positions().Count(); i++)
             {
-                if (!tiles[i].IsTileWalkable)
+                if (!tileBase[i].IsTileWalkable)
                 {
                     player.Position = Helpers.GetPointFromIndex(i, MapConsole.Width);
                 }
@@ -141,7 +152,7 @@ namespace GeradorDeMapaConceito
             // off the limits of the map
             if (location.X < 0 || location.Y < 0 || location.X >= MapConsole.Width || location.Y >= MapConsole.Height)
                 return false;
-            return !tiles[location.Y * MapConsole.Width + location.X].IsTileWalkable;
+            return !tileBase[location.Y * MapConsole.Width + location.X].IsTileWalkable;
         }
 
         public void CreateMapSadConsole(int width, int height)
@@ -150,19 +161,19 @@ namespace GeradorDeMapaConceito
             // Creates a empty map console to not get any errors, to them populate
             MapConsole = new ScrollingConsole(width, height);
 
-            tiles = new TileBase[width * height];
+            tileBase = new ArrayMap<TileBase>(width, height);
             tileArray = new ArrayMap<bool>(width, height);
             /* FloodFloors();
              MakeWalls();*/
 
             FloodFloors(tileArray);
             MakeWalls(tileArray);
-            PopulateTiles(tileArray, tiles);
+            PopulateTiles(tileArray, tileBase);
 
             //tiles = tileArray;
 
             MapConsole = new ScrollingConsole(width, height, Global.FontDefault
-                , new Rectangle(0, 0, width, height), tiles);
+                , new Rectangle(0, 0, width, height), tileBase);
             UseMouse = true;
             Children.Add(MapConsole);
             MapConsole.MouseMove += MapConsole_MouseMove;
@@ -180,6 +191,9 @@ namespace GeradorDeMapaConceito
 
             MapConsole = new ScrollingConsole(width, height, Global.FontDefault, new Rectangle(0, 0, width, height), tileBase);
             Children.Add(MapConsole);
+
+            //.AddPlayer();
+            MapConsole.MouseMove += MapConsole_MouseMove;
         }
 
         private void FloodFloors(ArrayMap<bool> map)
@@ -212,35 +226,6 @@ namespace GeradorDeMapaConceito
             }
         }
 
-        /*private void FloodFloors()
-        {
-            tiles = new TileBase[GameLoop.GameWidth * GameLoop.GameHeight];
-            tileArray = new ArrayMap<TileBase>(GameLoop.GameWidth, GameLoop.GameHeight);
-
-            for (int i = 0; i < tiles.Length; i++)
-            {
-                //tiles[i] = new TileFloor();
-                tileArray[i] = new TileFloor();
-            }
-        }
-
-        private void MakeWalls()
-        {
-            // formula x*m + y, calculo de row major
-            for (int y = 0; y < MapConsole.Height; y++)
-            {
-                for (int x = 0; x < MapConsole.Width; x++)
-                {
-                    if (x == 0 || y == 0 || x == MapConsole.Width - 1 || y == MapConsole.Height - 1)
-                    {
-                        tileArray[y * MapConsole.Width + x] = new TileWall();
-
-                        //tiles[y * MapConsole.Width + x] = new TileWall();
-                    }
-                }
-            }
-        }*/
-
         public override bool ProcessMouse(MouseConsoleState state)
         {
             return base.ProcessMouse(state);
@@ -248,30 +233,36 @@ namespace GeradorDeMapaConceito
 
         public override bool ProcessKeyboard(SadConsole.Input.Keyboard info)
         {
-            if (Global.KeyboardState.IsKeyPressed(Keys.Escape))
+            if (info.IsKeyPressed(Keys.Escape))
                 SadConsole.Game.Instance.Exit();
-            if (Global.KeyboardState.IsKeyPressed(Keys.NumPad8))
+            if (info.IsKeyPressed(Keys.NumPad8))
                 MoveBy(new Point(0, -1), player);
-            if (Global.KeyboardState.IsKeyPressed(Keys.NumPad2))
+            if (info.IsKeyPressed(Keys.NumPad2))
                 MoveBy(new Point(0, 1), player);
-            if (Global.KeyboardState.IsKeyPressed(Keys.NumPad4))
+            if (info.IsKeyPressed(Keys.NumPad4))
                 MoveBy(new Point(-1, 0), player);
-            if (Global.KeyboardState.IsKeyPressed(Keys.NumPad6))
+            if (info.IsKeyPressed(Keys.NumPad6))
                 MoveBy(new Point(1, 0), player);
-            if (Global.KeyboardState.IsKeyPressed(Keys.NumPad7))
+            if (info.IsKeyPressed(Keys.NumPad7))
                 MoveBy(new Point(-1, -1), player);
-            if (Global.KeyboardState.IsKeyPressed(Keys.NumPad9))
+            if (info.IsKeyPressed(Keys.NumPad9))
                 MoveBy(new Point(1, -1), player);
-            if (Global.KeyboardState.IsKeyPressed(Keys.NumPad1))
+            if (info.IsKeyPressed(Keys.NumPad1))
                 MoveBy(new Point(-1, 1), player);
-            if (Global.KeyboardState.IsKeyPressed(Keys.NumPad3))
+            if (info.IsKeyPressed(Keys.NumPad3))
                 MoveBy(new Point(1, 1), player);
-            if (Global.KeyboardState.IsKeyDown(Keys.LeftShift) && Global.KeyboardState.IsKeyPressed(Keys.P))
+            if (info.IsKeyDown(Keys.LeftShift) && info.IsKeyPressed(Keys.P))
                 AddPlayer();
+            if (info.IsKeyPressed(Keys.Up))
+            {
+                MoveBy(new Point(0, -1), player);
+            }
 
             return base.ProcessKeyboard(info);
         }
     }
+
+    #endregion World Gen and controls
 
     internal enum MapLayer
     {
@@ -279,6 +270,8 @@ namespace GeradorDeMapaConceito
         ITEM,
         ENTITY
     }
+
+    #region TileBase and Derivates
 
     public abstract class TileBase : Cell
     {
@@ -320,6 +313,10 @@ namespace GeradorDeMapaConceito
             return wa as TileFloor;
         }*/
     }
+
+    #endregion TileBase and Derivates
+
+    #region Entities
 
     public class Player : Actor
     {
@@ -364,11 +361,5 @@ namespace GeradorDeMapaConceito
         }
     }
 
-    /*public abstract class Entity : SadConsole.Entities.Entity
-    {
-        public Entity(Color foreground, Color background, int glyph, int height, int width, int layer) : base(height, width)
-        {
-            //Components.Add(new EntityViewSyncComponent());
-        }
-    }*/
+    #endregion Entities
 }
