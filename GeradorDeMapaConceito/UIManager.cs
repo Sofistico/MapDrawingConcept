@@ -185,14 +185,11 @@ namespace GeradorDeMapaConceito
             // Creates a empty map console to not get any errors, to them populate
             MapConsole = new ScrollingConsole(width, height);
 
-            //tileBase = new ArrayMap<TileBase>(width, height);
-
             map = new MapGoRogue(width, height);
 
             MapConsole = new ScrollingConsole(width, height, Global.FontDefault, new Rectangle(0, 0, width, height), tileBase);
             Children.Add(MapConsole);
 
-            //.AddPlayer();
             MapConsole.MouseMove += MapConsole_MouseMove;
         }
 

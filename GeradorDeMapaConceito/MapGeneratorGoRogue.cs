@@ -7,7 +7,7 @@ using SadConsole;
 
 namespace GeradorDeMapaConceito
 {
-    // When it's done, it will use the GoRogue.GameFramework
+    // If i finish this, it will use the GoRogue.GameFramework
     public class MapGeneratorGoRogue : Map
     {
         public enum MapLayer

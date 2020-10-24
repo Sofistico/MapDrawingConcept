@@ -11,14 +11,13 @@ namespace GeradorDeMapaConceito
     {
         private ArrayMap<bool> tempMap;
 
-        //private ArrayMap<TileBase> tiles = GameLoop.UIManager.tileBase;
-        private Player player;
-
+        // Constructor to create the map when it is called by the map gen aspect of uimanager
         public MapGoRogue(int width, int height)
         {
             GenerateMap(width, height);
         }
 
+        // Function that translates the values from tempMap to the real map
         private TileBase TempMapValueToTile(Coord pos, bool val) => val ? (TileBase)new TileFloor() : new TileWall();
 
         private void GenerateMap(int mapWidth, int mapHeight)
@@ -31,7 +30,6 @@ namespace GeradorDeMapaConceito
             QuickGenerators.GenerateRectangleMap(tempMap);
 
             // Update real map with tiles (using a GoRogue helper method)
-            //GameLoop.UIManager.tileBase.ApplyOverlay(new LambdaTranslationMap<bool, TileBase>(tempMap, TempMapValueToTile));
             GameLoop.UIManager.tileBase.ApplyOverlay(new LambdaTranslationMap<bool, TileBase>(tempMap, TempMapValueToTile));
         }
     }
