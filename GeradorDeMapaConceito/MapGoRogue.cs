@@ -9,7 +9,7 @@ namespace GeradorDeMapaConceito
     // This uses the core feature of GoRogue
     public class MapGoRogue
     {
-        private ArrayMap<bool> tempMap;
+        public ArrayMap<bool> tempMap;
 
         // Constructor to create the map when it is called by the map gen aspect of uimanager
         public MapGoRogue(int width, int height)

@@ -7,6 +7,8 @@ using Rectangle = Microsoft.Xna.Framework.Rectangle;
 using GoRogue.MapViews;
 using GoRogue.GameFramework;
 using System.Linq;
+using GoRogue;
+using SadConsole.Entities;
 
 namespace GeradorDeMapaConceito
 {
@@ -23,6 +25,10 @@ namespace GeradorDeMapaConceito
         private const int maxSize = 10;
         private ArrayMap<bool> tileArray;
         public ArrayMap<TileBase> tileBase;
+
+        public MultiSpatialMap<Entity> Entities;
+        public static IDGenerator IDGenerator = new IDGenerator();
+        public Pathfinder Pathfinder;
 
         #region Uimanager
 
@@ -94,6 +100,14 @@ namespace GeradorDeMapaConceito
                     }
                 }
             }
+
+            if (Global.KeyboardState.IsKeyDown(Keys.C) && !e.MouseState.Mouse.LeftClicked)
+            {
+                /* int mouseLocation = Helpers.GetIndexFromPoint(e.MouseState.CellPosition.X,
+                     e.MouseState.CellPosition.Y, MapConsole.Width);*/
+                //Item itemAt = GetEntityAt<Item>(Helpers.GetPointFromIndex(mouseLocation, MapConsole.Width));
+                Pathfinder.AStarPathfindingTest(e.MouseState.CellPosition, player);
+            }
         }
 
         private void AddItem(int indexOfTile)
@@ -104,6 +118,11 @@ namespace GeradorDeMapaConceito
             };
 
             MapConsole.Children.Add(item);
+        }
+
+        public T GetEntityAt<T>(Coord pos) where T : Entity
+        {
+            return Entities.GetItems(pos).OfType<T>().FirstOrDefault();
         }
 
         private void AddPlayer()
@@ -131,13 +150,13 @@ namespace GeradorDeMapaConceito
             //mob.IsVisible = true;
         }
 
-        private bool MoveBy(Point positionChange, Player player)
+        public bool MoveBy(Point positionChange, Actor actor)
         {
-            if (player != null)
+            if (actor != null)
             {
-                if (IsTileWalkable(player.Position + positionChange))
+                if (IsTileWalkable(actor.Position + positionChange))
                 {
-                    player.Position += positionChange;
+                    actor.Position += positionChange;
                     return true;
                 }
                 else
@@ -146,7 +165,7 @@ namespace GeradorDeMapaConceito
             return false;
         }
 
-        private bool IsTileWalkable(Point location)
+        public bool IsTileWalkable(Point location)
         {
             // first make sure that actor isn't trying to move
             // off the limits of the map
@@ -177,6 +196,8 @@ namespace GeradorDeMapaConceito
             UseMouse = true;
             Children.Add(MapConsole);
             MapConsole.MouseMove += MapConsole_MouseMove;
+            Entities = new MultiSpatialMap<Entity>();
+            Pathfinder = new Pathfinder(tileArray);
         }
 
         public void CreateMapGoRogue(int width, int height)
@@ -191,6 +212,8 @@ namespace GeradorDeMapaConceito
             Children.Add(MapConsole);
 
             MapConsole.MouseMove += MapConsole_MouseMove;
+            Entities = new MultiSpatialMap<Entity>();
+            Pathfinder = new Pathfinder(map.tempMap);
         }
 
         private void FloodFloors(ArrayMap<bool> map)
@@ -329,31 +352,40 @@ namespace GeradorDeMapaConceito
         }
     }
 
-    public abstract class Actor : SadConsole.Entities.Entity
+    public abstract class Actor : Entity
     {
-        public int Layer;
-
         public Actor(Color foreground, Color background, int glyph, int layer = (int)MapLayer.ENTITY, int height = 1, int width = 1) :
-            base(height, width)
+            base(foreground, background, glyph, layer)
+        {
+        }
+    }
+
+    public abstract class Entity : SadConsole.Entities.Entity, IHasID
+    {
+        public uint ID { get; private set; } // stores the entity's unique identification number
+        public int Layer { get; set; } // stores and sets the layer that the entity is rendered
+
+        protected Entity(Color foreground, Color background, int glyph, int layer, int width = 1, int height = 1) : base(width, height)
         {
             Animation.CurrentFrame[0].Foreground = foreground;
             Animation.CurrentFrame[0].Background = background;
             Animation.CurrentFrame[0].Glyph = glyph;
+
             Layer = layer;
+
+            // Create a new unique identifier for this entity
+            ID = UIManager.IDGenerator.UseID();
         }
     }
 
-    public class Item : SadConsole.Entities.Entity
+    public class Item : Entity
     {
         public int Value;
-        public int Layer;
-        public new string Name;
 
         public Item(Color foreground, Color background, int glyph, int value, string name, int layer = (int)MapLayer.ITEM)
-            : base(foreground, background, glyph)
+            : base(foreground, background, glyph, layer)
         {
             Value = value;
-            Layer = layer;
             Name = name;
         }
     }
