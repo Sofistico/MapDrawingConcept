@@ -15,15 +15,14 @@ namespace GeradorDeMapaConceito
 {
     public class Pathfinder
     {
-        private Coord parent; // saves the position the actor last was.
         private ArrayMap<bool> nodes; // thought for the future, contains all tiles that are walkable.
 
-        // F is just g + h, the cost to move to a tile
-        private int f;
-        // Distance from the starting point
-        private int g;
-        // Estimated distance from the desired spot
-        private int h;
+        /*// F is just g + h, the cost to move to a tile
+         private int f;
+         // Distance from the starting point
+         private int g;
+         // Estimated distance from the desired spot
+         private int h;*/
 
         public AStar Path { get; }
 
@@ -45,25 +44,34 @@ namespace GeradorDeMapaConceito
             // I cant seem to make it work, fuck this shit.
             //var target = GameLoop.UIManager.GetEntityAt<Item>(item.Position);
             //var actor = GameLoop.UIManager.GetEntityAt<Actor>(mob.Position);
+            if (mob != null)
+            {
+                Path pathToItem = Path.ShortestPath(mob.Position, target);
 
-            Path pathToItem = Path.ShortestPath(mob.Position, target);
-
-            FollowPath(pathToItem, mob);
+                FollowPath(pathToItem, mob);
+            }
             //MoveTowards(pathToItem, actor);
         }
 
         public bool FollowPath(Path path, Actor actor)
         {
-            // Im gettin there, just need to make it not teleport my poor guy
             foreach (Coord coord in path.Steps)
             {
                 if (GameLoop.UIManager.IsTileWalkable(coord))
                 {
-                    actor.Position += coord.Translate(actor.Position);
+                    // Sort of works, but it doesn't take in account the terrain
+                    actor.Position = new Coord(coord.X, coord.Y);
+                    //GameLoop.UIManager.MoveBy(coord, actor);
                     return true;
                 }
+                else
+                    return false;
             }
             return false;
+        }
+
+        public void MoveActor(Actor actor, Coord coord)
+        {
         }
 
         public bool MoveTo(Coord newPos, Actor actor)

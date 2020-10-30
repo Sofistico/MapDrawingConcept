@@ -101,7 +101,7 @@ namespace GeradorDeMapaConceito
                 }
             }
 
-            if (Global.KeyboardState.IsKeyDown(Keys.C) && !e.MouseState.Mouse.LeftClicked)
+            if (Global.KeyboardState.IsKeyPressed(Keys.C) && !e.MouseState.Mouse.LeftClicked)
             {
                 /* int mouseLocation = Helpers.GetIndexFromPoint(e.MouseState.CellPosition.X,
                      e.MouseState.CellPosition.Y, MapConsole.Width);*/
@@ -246,9 +246,9 @@ namespace GeradorDeMapaConceito
             }
         }
 
-        public override bool ProcessMouse(MouseConsoleState state)
+        public override void Update(TimeSpan timeElapsed)
         {
-            return base.ProcessMouse(state);
+            base.Update(timeElapsed);
         }
 
         public override bool ProcessKeyboard(SadConsole.Input.Keyboard info)
