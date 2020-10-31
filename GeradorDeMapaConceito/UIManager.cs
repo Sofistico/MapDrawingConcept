@@ -101,6 +101,7 @@ namespace GeradorDeMapaConceito
                 }
             }
 
+            // This takes the player and moves it to the desired position.
             if (Global.KeyboardState.IsKeyPressed(Keys.C) && !e.MouseState.Mouse.LeftClicked)
             {
                 /* int mouseLocation = Helpers.GetIndexFromPoint(e.MouseState.CellPosition.X,
