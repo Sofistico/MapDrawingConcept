@@ -198,7 +198,9 @@ namespace GeradorDeMapaConceito
             Children.Add(MapConsole);
             MapConsole.MouseMove += MapConsole_MouseMove;
             Entities = new MultiSpatialMap<Entity>();
-            Pathfinder = new Pathfinder(tileArray);
+
+            var pathView = new LambdaTranslationMap<TileBase, bool>(tileBase, val => !val.IsTileWalkable);
+            Pathfinder = new Pathfinder(pathView);
         }
 
         public void CreateMapGoRogue(int width, int height)
@@ -214,7 +216,9 @@ namespace GeradorDeMapaConceito
 
             MapConsole.MouseMove += MapConsole_MouseMove;
             Entities = new MultiSpatialMap<Entity>();
-            Pathfinder = new Pathfinder(map.tempMap);
+
+            var pathView = new LambdaTranslationMap<TileBase, bool>(tileBase, val => !val.IsTileWalkable);
+            Pathfinder = new Pathfinder(pathView);
         }
 
         private void FloodFloors(ArrayMap<bool> map)
