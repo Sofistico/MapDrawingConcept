@@ -19,7 +19,7 @@ namespace GeradorDeMapaConceito
         public MapGoRogue map;
 
         //public TileBase[] tiles;
-        private Player player;
+        public Player player;
 
         private const int maxRooms = 6;
         private const int maxSize = 10;
@@ -109,6 +109,11 @@ namespace GeradorDeMapaConceito
                 //Item itemAt = GetEntityAt<Item>(Helpers.GetPointFromIndex(mouseLocation, MapConsole.Width));
                 Pathfinder.AStarPathfindingTest(e.MouseState.CellPosition, player);
             }
+            if (Global.KeyboardState.IsKeyPressed(Keys.B))
+            {
+                if (player != null)
+                    player.Position = e.MouseState.CellPosition;
+            }
         }
 
         private void AddItem(int indexOfTile)
@@ -119,6 +124,8 @@ namespace GeradorDeMapaConceito
             };
 
             MapConsole.Children.Add(item);
+            Entities.Add(item, item.Position);
+            item.Moved += OnEntity_Moved;
         }
 
         public T GetEntityAt<T>(Coord pos) where T : Entity
@@ -137,7 +144,14 @@ namespace GeradorDeMapaConceito
                 }
             }
             MapConsole.Children.Add(player);
+            Entities.Add(player, player.Position);
+            player.Moved += OnEntity_Moved;
             //player.IsVisible = true;
+        }
+
+        private void OnEntity_Moved(object sender, SadConsole.Entities.Entity.EntityMovedEventArgs e)
+        {
+            Entities.Move(e.Entity as Entity, e.Entity.Position);
         }
 
         private void AddBasicMob(int indexOfTile)
@@ -149,6 +163,8 @@ namespace GeradorDeMapaConceito
             //MapConsole.Children.Add(mob);
             MapConsole.Children.Insert(MapConsole.Children.Count, mob);
             //mob.IsVisible = true;
+            Entities.Add(mob, mob.Position);
+            mob.Moved += OnEntity_Moved;
         }
 
         public bool MoveBy(Point positionChange, Actor actor)
@@ -281,6 +297,18 @@ namespace GeradorDeMapaConceito
             if (info.IsKeyPressed(Keys.Up))
             {
                 MoveBy(new Point(0, -1), player);
+            }
+            if (info.IsKeyPressed(Keys.V))
+            {
+                // Quando se adiciona um player ou um mob, não está sendo adicionado ao entities, é necessario adicionar
+                // Add no metodo que se cria os players, mobs e items
+                foreach (BasicMob mob in Entities.Items.OfType<BasicMob>())
+                {
+                    if (mob != null)
+                    {
+                        Pathfinder.AStarPathfindingTest(player.Position, mob);
+                    }
+                }
             }
 
             return base.ProcessKeyboard(info);

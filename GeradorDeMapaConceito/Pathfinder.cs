@@ -15,7 +15,7 @@ namespace GeradorDeMapaConceito
 {
     public class Pathfinder
     {
-        private IMapView<bool> nodes; // IMap view that contains all nodes, way better than storing it in an array
+        private readonly IMapView<bool> nodes; // IMap view that contains all nodes, way better than storing it in an array
 
         /*// F is just g + h, the cost to move to a tile
          private int f;
@@ -24,13 +24,13 @@ namespace GeradorDeMapaConceito
          // Estimated distance from the desired spot
          private int h;*/
 
-        public AStar Path { get; }
+        public FastAStar Path { get; }
 
         // The constructor inserts all current tiles in the World to the list.
         public Pathfinder(IMapView<bool> walkabilityMap)
         {
             nodes = walkabilityMap;
-            Path = new AStar(nodes, Distance.CHEBYSHEV);
+            Path = new FastAStar(nodes, Distance.CHEBYSHEV);
         }
 
         public void AStarPathfindingTest(Coord target, Actor mob)
@@ -43,7 +43,7 @@ namespace GeradorDeMapaConceito
             }
         }
 
-        public bool FollowPath(Path path, Actor actor)
+        private bool FollowPath(Path path, Actor actor)
         {
             if (path != null)
             {
@@ -62,6 +62,15 @@ namespace GeradorDeMapaConceito
             }
 
             return false;
+        }
+
+        public void FollowPlayer(Coord target, Actor mob)
+        {
+            if (mob != null)
+            {
+                Path path = Path.ShortestPath(mob.Position, target);
+                FollowPath(path, mob);
+            }
         }
     }
 }
