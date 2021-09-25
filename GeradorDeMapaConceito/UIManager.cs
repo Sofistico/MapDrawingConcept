@@ -14,6 +14,8 @@ namespace GeradorDeMapaConceito
 {
     public class UIManager : ContainerConsole
     {
+        private SadConsole.Console informationConsole = new SadConsole.Console(10, 10);
+
         public ScrollingConsole MapConsole;
         public MainMenuConsole MainMenu;
         public MapGoRogue map;
@@ -94,7 +96,20 @@ namespace GeradorDeMapaConceito
                    e.MouseState.CellPosition.Y, MapConsole.Width);
                 if (!tileBase[mouseLocation].IsTileWalkable)
                 {
-                    for (int i = 0; i < 100; i++)
+                    for (int i = 0; i < 1000; i++)
+                    {
+                        AddBasicMob(mouseLocation);
+                    }
+                }
+            }
+            if (Global.KeyboardState.IsKeyDown(Keys.LeftControl) && e.MouseState.Mouse.RightButtonDown)
+            {
+                // Made to stress test how many entities it holds
+                int mouseLocation = Helpers.GetIndexFromPoint(e.MouseState.CellPosition.X,
+                   e.MouseState.CellPosition.Y, MapConsole.Width);
+                if (!tileBase[mouseLocation].IsTileWalkable)
+                {
+                    for (int i = 0; i < 10000; i++)
                     {
                         AddBasicMob(mouseLocation);
                     }
@@ -109,6 +124,20 @@ namespace GeradorDeMapaConceito
                 //Item itemAt = GetEntityAt<Item>(Helpers.GetPointFromIndex(mouseLocation, MapConsole.Width));
                 Pathfinder.AStarPathfindingTest(e.MouseState.CellPosition, player);
             }
+
+            // This takes the player and moves it to the desired position.
+            if (Global.KeyboardState.IsKeyDown(Keys.LeftShift)
+                && Global.KeyboardState.IsKeyPressed(Keys.C) && !e.MouseState.Mouse.LeftClicked)
+            {
+                /* int mouseLocation = Helpers.GetIndexFromPoint(e.MouseState.CellPosition.X,
+                     e.MouseState.CellPosition.Y, MapConsole.Width);*/
+                //Item itemAt = GetEntityAt<Item>(Helpers.GetPointFromIndex(mouseLocation, MapConsole.Width));
+                foreach (Entity item in Entities.Items)
+                {
+                    Pathfinder.AStarPathfindingTest(e.MouseState.CellPosition, item);
+                }
+            }
+
             if (Global.KeyboardState.IsKeyPressed(Keys.B))
             {
                 if (player != null)
@@ -269,6 +298,11 @@ namespace GeradorDeMapaConceito
 
         public override void Update(TimeSpan timeElapsed)
         {
+            if (Entities != null && Entities.Count >= 1)
+            {
+                MapConsole.Print(0, 0, $"Entities total: {Entities.Count}");
+            }
+
             base.Update(timeElapsed);
         }
 
@@ -387,7 +421,7 @@ namespace GeradorDeMapaConceito
 
     public abstract class Actor : Entity
     {
-        public Actor(Color foreground, Color background, int glyph, int layer = (int)MapLayer.ENTITY, int height = 1, int width = 1) :
+        public Actor(Color foreground, Color background, int glyph, int layer = (int)MapLayer.ENTITY) :
             base(foreground, background, glyph, layer)
         {
         }

@@ -33,7 +33,7 @@ namespace GeradorDeMapaConceito
             Path = new FastAStar(nodes, Distance.CHEBYSHEV);
         }
 
-        public void AStarPathfindingTest(Coord target, Actor mob)
+        public void AStarPathfindingTest(Coord target, Entity mob)
         {
             if (mob != null)
             {
@@ -43,7 +43,7 @@ namespace GeradorDeMapaConceito
             }
         }
 
-        private bool FollowPath(Path path, Actor actor)
+        private bool FollowPath(Path path, Entity actor)
         {
             if (path != null)
             {
